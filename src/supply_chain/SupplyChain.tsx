@@ -25,7 +25,10 @@ const minimapStyle = {
 const onInit = (reacftFlowInstance) => console.log('flow loaded:', reactFlowInstance);
 
 export const SupplyChain: FC = () => {
-  const [journey] = Retool.useStateObject('journey', {nodes: [], edges: []});
+  const [journey] = Retool.useStateObject({
+    name: 'journey', 
+    initialValue: { nodes: [], edges: [] }
+  });
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);

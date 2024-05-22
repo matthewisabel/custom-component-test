@@ -35,7 +35,7 @@
   "retoolCustomComponentLibraryConfig": {
     "name": "Tree",
     "label": "Tree",
-    "description": "",
+    "description": "Tree components",
     "entryPoint": "src/index.tsx",
     "outputPath": "dist"
   }

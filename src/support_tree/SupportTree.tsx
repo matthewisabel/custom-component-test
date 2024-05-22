@@ -1,44 +1,51 @@
 import React, { FC, useCallback, useEffect } from 'react';
 import ReactFlow, {
   addEdge,
-  MiniMap,
+  EdgeTypes,
+  Edge, 
   Controls,
   Background,
   useNodesState,
-  useEdgesState,
+  useEdgesState
 } from 'reactflow';
 import { Retool } from '@tryretool/custom-component-support'
 import { nodes as initialNodes, edges as initialEdges } from './initial-elements';
-import CustomNode from './CustomNode';
+import CustomEdge from './CustomEdge';
 
 import 'reactflow/dist/style.css';
 import './overview.css';
-
-const nodeTypes = {
-  custom: CustomNode,
-};
 
 const minimapStyle = {
   height: 120,
 };
 
-const onInit = (reacftFlowInstance) => console.log('flow loaded:', reactFlowInstance);
+const edgeTypes: EdgeTypes = {
+  custom: CustomEdge
+};
 
-export const SupplyChain: FC = () => {
-  const [journey] = Retool.useStateObject({
-    name: 'journey', 
+const onInit = (reactFlowInstance) => console.log('flow loaded:', reactFlowInstance);
+
+export const SupportTree: FC = () => {
+  const [playbook] = Retool.useStateObject({
+    name: 'playbook', 
     initialValue: { nodes: [], edges: [] }
   });
 
+  const onClick = Retool.useEventCallback({ name: "foo" });
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   useEffect(() => {
-    if (journey.nodes && journey.edges) {
-      setNodes(journey.nodes);
-      setEdges(journey.edges);
+    if (playbook.nodes && playbook.edges) {
+      setNodes(playbook.nodes);
+      setEdges(playbook.edges);
     }
-  }, [journey, setNodes, setEdges]);
+  }, [playbook, setNodes, setEdges]);
+
+  const handleClick = useCallback((event, nodeId) => {
+    console.log(event, nodeId);
+    onClick();
+  }, [onClick])
 
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
 
@@ -46,17 +53,16 @@ export const SupplyChain: FC = () => {
     <ReactFlow
       nodes={nodes}
       edges={edges}
+      edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
+      onNodeClick={handleClick}
       onInit={onInit} // Ensure you define what you want to happen on init or remove if not needed.
       fitView
-      attributionPosition="top-right"
-      // Ensure nodeTypes is correctly defined elsewhere in your code.
-      nodeTypes={nodeTypes}
     >
       <Controls />
-      <Background color="#aaa" gap={16} />
+      <Background color="#D3D3D3" gap={16} />
     </ReactFlow>
   );
 };

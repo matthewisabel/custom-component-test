@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect } from 'react';
+import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
 import ReactFlow, {
   addEdge,
   EdgeTypes,
@@ -31,7 +31,16 @@ export const SupportTree: FC = () => {
     initialValue: { nodes: [], edges: [] }
   });
 
-  const onClick = Retool.useEventCallback({ name: "foo" });
+  const [selectedNode, setSelectedNode] = Retool.useStateObject({
+    name: 'selectedNode',
+    initialValue: { id: '', data: {} },
+    inspector: 'hidden'
+  });
+
+  const closeTicket = Retool.useEventCallback({ name: "closeTicket" });
+  const slackNotification = Retool.useEventCallback({ name: "slackNotification" });
+  const generateAI = Retool.useEventCallback({ name: "generateAI" });
+
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
@@ -42,12 +51,32 @@ export const SupportTree: FC = () => {
     }
   }, [playbook, setNodes, setEdges]);
 
-  const handleClick = useCallback((event, nodeId) => {
-    console.log(event, nodeId);
-    onClick();
-  }, [onClick])
+  const handleClick = useCallback((event, node) => {
+    setSelectedNode(node);
+  
+    const functionMap = {
+      closeTicket: closeTicket,
+      slackNotification: slackNotification,
+      generateAI: generateAI,
+    };
+
+    const func = functionMap[node.data.action];
+    if (func) {
+      func();
+    } else {
+      console.warn(`Unknown function: ${node.data.action}`);
+    }
+  }, [closeTicket, slackNotification, generateAI])
 
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
+
+  const reactFlowWrapper = useRef(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+
+  const onLoad = useCallback((instance) => {
+    setReactFlowInstance(instance);
+    instance.fitView();
+  }, []);
 
   return (
     <ReactFlow
@@ -58,7 +87,7 @@ export const SupportTree: FC = () => {
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onNodeClick={handleClick}
-      onInit={onInit} // Ensure you define what you want to happen on init or remove if not needed.
+      onLoad={onLoad}
       fitView
     >
       <Controls />

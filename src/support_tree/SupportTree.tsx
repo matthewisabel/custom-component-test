@@ -11,6 +11,7 @@ import ReactFlow, {
 import { Retool } from '@tryretool/custom-component-support'
 import { nodes as initialNodes, edges as initialEdges } from './initial-elements';
 import CustomEdge from './CustomEdge';
+import CustomNode from './CustomNode';
 
 import 'reactflow/dist/style.css';
 import './overview.css';
@@ -21,6 +22,10 @@ const minimapStyle = {
 
 const edgeTypes: EdgeTypes = {
   custom: CustomEdge
+};
+
+const nodeTypes = {
+  custom: CustomNode,
 };
 
 const onInit = (reactFlowInstance) => console.log('flow loaded:', reactFlowInstance);
@@ -44,16 +49,27 @@ export const SupportTree: FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
+  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
+
+  const reactFlowWrapper = useRef(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+
   useEffect(() => {
     if (playbook.nodes && playbook.edges) {
       setNodes(playbook.nodes);
       setEdges(playbook.edges);
+    } else {
+      setNodes(initialNodes);
+      setEdges(initialEdges);
     }
-  }, [playbook, setNodes, setEdges]);
+
+    if (reactFlowInstance) {
+      reactFlowInstance.fitView(); 
+    }
+  }, [playbook, setNodes, setEdges, reactFlowInstance]);
 
   const handleClick = useCallback((event, node) => {
     setSelectedNode(node);
-  
     const functionMap = {
       closeTicket: closeTicket,
       slackNotification: slackNotification,
@@ -68,10 +84,7 @@ export const SupportTree: FC = () => {
     }
   }, [closeTicket, slackNotification, generateAI])
 
-  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
 
-  const reactFlowWrapper = useRef(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState(null);
 
   const onLoad = useCallback((instance) => {
     setReactFlowInstance(instance);
@@ -81,6 +94,7 @@ export const SupportTree: FC = () => {
   return (
     <ReactFlow
       nodes={nodes}
+      nodeTypes={nodeTypes}
       edges={edges}
       edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}
